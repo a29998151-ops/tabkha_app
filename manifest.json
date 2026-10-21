@@ -1,0 +1,15 @@
+{
+  "short_name": "طبخة",
+  "name": "طبخة النهاردة - مساعد المطبخ الذكي",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/1830/1830839.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "background_color": "#ffffff",
+  "theme_color": "#FF6B00",
+  "display": "standalone"
+}
