@@ -24,7 +24,7 @@
       box-shadow: 0 10px 25px -5px rgba(255, 107, 0, 0.2);
     }
   </style>
-</head><link rel="manifest" href="./manifest.json">
+</head>
 <body class="bg-slate-50 text-slate-800 min-h-screen pb-20">
 
   <!-- Header / Nav -->
@@ -139,7 +139,6 @@
       </div>
 
       <div class="grid grid-cols-2 gap-3">
-        <!-- Dish Card 1 -->
         <div onclick="showPresetDish('صينية بطاطس بالدجاج في الفرن')" class="bg-white rounded-2xl p-2.5 border border-slate-100 shadow-sm hover:shadow-md transition cursor-pointer group">
           <div class="relative mb-2 overflow-hidden rounded-xl h-28">
             <img src="https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" alt="صينية بطاطس">
@@ -151,7 +150,6 @@
           <p class="text-[10px] text-slate-400 mt-0.5">طبق مصري أصيل وسهل</p>
         </div>
 
-        <!-- Dish Card 2 -->
         <div onclick="showPresetDish('كشري مصري بيتي')" class="bg-white rounded-2xl p-2.5 border border-slate-100 shadow-sm hover:shadow-md transition cursor-pointer group">
           <div class="relative mb-2 overflow-hidden rounded-xl h-28">
             <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" alt="كشري">
@@ -267,7 +265,9 @@
       resultBox.classList.add('hidden');
 
       try {
-        let promptText = "اقترح طبخة وصفة طعام عربية تناسب المكونات التالية وتكون بنسق JSON يحتوي على: title (اسم الطبخة), time (الوقت المتوقع), ingredients (مصفوفة المكونات), steps (مصفوفة الخطوات):\n";
+        let promptText = "اقترح وصفة طعام عربية تناسب المكونات التالية وأعطني النتيجة بصيغة JSON فقط بهذا الشكل تماماً:\n" +
+          "{\n  \"title\": \"اسم الوصفة\",\n  \"time\": \"30 دقيقة\",\n  \"ingredients\": [\"مكون 1\", \"مكون 2\"],\n  \"steps\": [\"خطوة 1\", \"خطوة 2\"]\n}\nمكوناتي هي: ";
+        
         let bodyData = {};
 
         if (activeMode === 'text') {
@@ -278,18 +278,14 @@
             return;
           }
           promptText += inputVal;
-
-          bodyData = {
-            contents: [{ parts: [{ text: promptText }] }]
-          };
+          bodyData = { contents: [{ parts: [{ text: promptText }] }] };
         } else {
           if (!base64Image) {
             alert('يرجى اختيار صورة أولاً!');
             loadingBox.classList.add('hidden');
             return;
           }
-          promptText += "تعرف على المكونات الموجودة في الصورة واقترح طبقاً مناسباً بها.";
-
+          promptText += "تعرف على المكونات في الصورة واقترح طبقاً مناسباً.";
           bodyData = {
             contents: [{
               parts: [
@@ -307,11 +303,29 @@
         });
 
         const data = await response.json();
-        const textResponse = data.candidates[0].content.parts[0].text;
+        
+        if (data.error) {
+          throw new Error(data.error.message || 'خطأ من الخادم');
+        }
 
-        // Try to clean and parse JSON response
-        const cleanJson = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-        const recipe = JSON.parse(cleanJson);
+        const textResponse = data.candidates[0].content.parts[0].text;
+        
+        // تنظيف الرد واستخراج JSON بأمان تام
+        let recipe;
+        try {
+          const cleanJson = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+          const jsonStart = cleanJson.indexOf('{');
+          const jsonEnd = cleanJson.lastIndexOf('}') + 1;
+          recipe = JSON.parse(cleanJson.substring(jsonStart, jsonEnd));
+        } catch (e) {
+          // لو الرد مش JSON صريح، نعمله تكوين افتراضي من النص
+          recipe = {
+            title: "وصفة الشيف الذكي",
+            time: "30 دقيقة",
+            ingredients: [document.getElementById('ingredientsInput').value || "مكونات متنوعة"],
+            steps: [textResponse]
+          };
+        }
 
         document.getElementById('recipeTitle').innerText = recipe.title || 'وصفة مقترحة';
         document.getElementById('recipeTime').innerText = recipe.time || '30 دقيقة';
@@ -335,7 +349,7 @@
         resultBox.classList.remove('hidden');
 
       } catch (err) {
-        alert('حدث خطأ أثناء التواصل مع الذكاء الاصطناعي، التأكد من صحة المفتاح والمكونات.');
+        alert('حدث خطأ: تأكد من صحة مفتاح API أو أن المكونات واضحة.');
         console.error(err);
       } finally {
         loadingBox.classList.add('hidden');
