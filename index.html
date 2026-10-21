@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>طبخة النهاردة - مساعد المطبخ الذكي</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Cairo -->
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      background-color: #f8fafc;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .hero-gradient {
+      background: linear-gradient(135deg, #FF6B00 0%, #FF9E00 100%);
+    }
+    .custom-shadow {
+      box-shadow: 0 10px 25px -5px rgba(255, 107, 0, 0.2);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen pb-20">
+
+  <!-- Header / Nav -->
+  <header class="bg-white border-b border-slate-100 sticky top-0 z-40 px-4 py-3 shadow-sm">
+    <div class="max-w-md mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center text-white font-bold text-xl shadow-md shadow-orange-200">
+          <i class="fa-solid fa-utensils"></i>
+        </div>
+        <div>
+          <h1 class="font-extrabold text-lg text-slate-900 leading-tight">طبخة النهاردة</h1>
+          <p class="text-xs text-orange-600 font-medium">مساعد المطبخ الذكي</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="openApiKeyModal()" class="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-full border border-emerald-200 hover:bg-emerald-100 transition">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          Gemini AI متصل
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-md mx-auto px-4 pt-4 space-y-6">
+
+    <!-- Hero Card -->
+    <div class="hero-gradient rounded-3xl p-5 text-white custom-shadow relative overflow-hidden">
+      <div class="absolute -left-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
+      
+      <div class="inline-flex items-center gap-1.5 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-semibold mb-3 border border-white/20">
+        <span>✨ مدعوم بالذكاء الاصطناعي</span>
+      </div>
+
+      <h2 class="text-2xl font-extrabold mb-2 leading-tight">محتار تطبخ إيه النهاردة؟</h2>
+      <p class="text-xs text-orange-50 leading-relaxed mb-5 font-medium">
+        صور مكوناتك أو اكتب اللي عندك في الثلاجة، وسيب الباقي للشيف الذكي!
+      </p>
+
+      <!-- Input Mode Switcher -->
+      <div class="grid grid-cols-2 gap-2 mb-4 bg-black/10 p-1 rounded-2xl">
+        <button id="btnTextMode" onclick="switchMode('text')" class="py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition bg-white text-orange-600 shadow-sm">
+          <i class="fa-solid fa-carrot"></i>
+          كتابة المكونات
+        </button>
+        <button id="btnCameraMode" onclick="switchMode('camera')" class="py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition text-white hover:bg-white/10">
+          <i class="fa-solid fa-camera"></i>
+          تصوير المكونات
+        </button>
+      </div>
+
+      <!-- Text Input Section -->
+      <div id="textSection" class="space-y-3">
+        <div class="relative">
+          <input type="text" id="ingredientsInput" placeholder="مثال: دجاج، بصل، طماطم، بطاطس، ثوم..." class="w-full bg-white text-slate-800 placeholder-slate-400 text-xs rounded-2xl px-4 py-3.5 pl-10 focus:outline-none focus:ring-2 focus:ring-orange-300 font-medium shadow-sm">
+          <i class="fa-solid fa-kitchen-set absolute left-3 top-3.5 text-slate-400 text-sm"></i>
+        </div>
+      </div>
+
+      <!-- Camera/Upload Section (Hidden by default) -->
+      <div id="cameraSection" class="hidden space-y-3">
+        <div onclick="document.getElementById('imageFileInput').click()" class="border-2 border-dashed border-white/40 hover:border-white rounded-2xl p-4 text-center cursor-pointer bg-white/5 transition flex flex-col items-center justify-center min-h-[100px]">
+          <input type="file" id="imageFileInput" accept="image/*" class="hidden" onchange="handleImageSelect(event)">
+          <i class="fa-solid fa-cloud-arrow-up text-2xl text-white mb-2"></i>
+          <span id="uploadText" class="text-xs font-medium text-white">اضغط لاختيار صورة للمكونات أو الثلاجة</span>
+        </div>
+        <img id="imagePreview" class="hidden w-full h-32 object-cover rounded-2xl border-2 border-white/50">
+      </div>
+
+      <!-- Submit Button -->
+      <button onclick="generateRecipe()" id="submitBtn" class="w-full mt-4 bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 px-4 rounded-2xl shadow-lg flex items-center justify-center gap-2 transition active:scale-[0.98] text-sm">
+        <i class="fa-solid fa-wand-magic-sparkles text-orange-400"></i>
+        اقترح لي طبخة النهاردة ✨
+      </button>
+
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingBox" class="hidden text-center py-8 space-y-3">
+      <div class="inline-block animate-spin rounded-full h-10 w-10 border-4 border-orange-500 border-t-transparent"></div>
+      <p class="text-xs font-bold text-slate-600">جاري التفكير في أفضل وصفة تناسب مكوناتك...</p>
+    </div>
+
+    <!-- Recipe Result Container -->
+    <div id="resultBox" class="hidden bg-white rounded-3xl p-5 border border-slate-100 shadow-sm space-y-4">
+      <div class="flex items-center justify-between border-b pb-3">
+        <h3 id="recipeTitle" class="text-lg font-extrabold text-slate-900"></h3>
+        <span id="recipeTime" class="text-xs font-bold bg-orange-100 text-orange-700 px-2.5 py-1 rounded-full"></span>
+      </div>
+
+      <div>
+        <h4 class="font-bold text-xs text-orange-600 mb-2 flex items-center gap-1.5">
+          <i class="fa-solid fa-list-check"></i> المكونات المطلوبة:
+        </h4>
+        <ul id="recipeIngredients" class="list-disc list-inside text-xs text-slate-600 space-y-1 font-medium pl-2"></ul>
+      </div>
+
+      <div>
+        <h4 class="font-bold text-xs text-orange-600 mb-2 flex items-center gap-1.5">
+          <i class="fa-solid fa-fire-burner"></i> خطوات التحضير:
+        </h4>
+        <ol id="recipeSteps" class="list-decimal list-inside text-xs text-slate-600 space-y-1.5 font-medium pl-2"></ol>
+      </div>
+    </div>
+
+    <!-- Suggested Dishes Section -->
+    <div class="space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="font-extrabold text-base text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-fire text-orange-500"></i> أشهر الأطباق المقترحة
+        </h3>
+        <span class="text-xs text-slate-400 font-medium">اختر طبقاً للعرض الفوري</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <!-- Dish Card 1 -->
+        <div onclick="showPresetDish('صينية بطاطس بالدجاج في الفرن')" class="bg-white rounded-2xl p-2.5 border border-slate-100 shadow-sm hover:shadow-md transition cursor-pointer group">
+          <div class="relative mb-2 overflow-hidden rounded-xl h-28">
+            <img src="https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" alt="صينية بطاطس">
+            <span class="absolute top-2 right-2 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+              <i class="fa-regular fa-clock"></i> 50 د
+            </span>
+          </div>
+          <h4 class="font-bold text-xs text-slate-800 line-clamp-1 group-hover:text-orange-600 transition">صينية بطاطس بالدجاج</h4>
+          <p class="text-[10px] text-slate-400 mt-0.5">طبق مصري أصيل وسهل</p>
+        </div>
+
+        <!-- Dish Card 2 -->
+        <div onclick="showPresetDish('كشري مصري بيتي')" class="bg-white rounded-2xl p-2.5 border border-slate-100 shadow-sm hover:shadow-md transition cursor-pointer group">
+          <div class="relative mb-2 overflow-hidden rounded-xl h-28">
+            <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" alt="كشري">
+            <span class="absolute top-2 right-2 bg-black/60 backdrop-blur-md text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+              <i class="fa-regular fa-clock"></i> 60 د
+            </span>
+          </div>
+          <h4 class="font-bold text-xs text-slate-800 line-clamp-1 group-hover:text-orange-600 transition">كشري مصري مشكل</h4>
+          <p class="text-[10px] text-slate-400 mt-0.5">بالدقة والصلصة الحارة</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Bottom Navigation -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 py-2 px-6 z-40">
+    <div class="max-w-md mx-auto flex justify-around items-center">
+      <button class="flex flex-col items-center gap-1 text-orange-600">
+        <i class="fa-solid fa-house text-lg"></i>
+        <span class="text-[10px] font-bold">الرئيسية</span>
+      </button>
+      <button onclick="openApiKeyModal()" class="flex flex-col items-center gap-1 text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-key text-lg"></i>
+        <span class="text-[10px] font-bold">مفتاح API</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Modal API Key -->
+  <div id="apiKeyModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl p-6 max-w-sm w-full space-y-4 shadow-xl">
+      <h3 class="font-bold text-base text-slate-900">إعداد مفتاح Gemini API المجاني</h3>
+      <p class="text-xs text-slate-500 leading-relaxed">
+        للوصول لاقتراحات الذكاء الاصطناعي مجاناً، ادخل المفتاح الخاص بك من Google AI Studio:
+      </p>
+      <input type="password" id="apiKeyInput" placeholder="الصق مفتاح API هنا..." class="w-full bg-slate-100 text-xs rounded-xl px-3 py-3 focus:outline-none focus:ring-2 focus:ring-orange-400 font-mono">
+      <div class="flex gap-2">
+        <button onclick="saveApiKey()" class="flex-1 bg-orange-500 text-white font-bold py-2.5 rounded-xl text-xs hover:bg-orange-600 transition">حفظ المفتاح</button>
+        <button onclick="closeApiKeyModal()" class="px-4 bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-xs">إلغاء</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let activeMode = 'text';
+    let base64Image = null;
+
+    function switchMode(mode) {
+      activeMode = mode;
+      const btnText = document.getElementById('btnTextMode');
+      const btnCam = document.getElementById('btnCameraMode');
+      const secText = document.getElementById('textSection');
+      const secCam = document.getElementById('cameraSection');
+
+      if (mode === 'text') {
+        btnText.className = "py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition bg-white text-orange-600 shadow-sm";
+        btnCam.className = "py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition text-white hover:bg-white/10";
+        secText.classList.remove('hidden');
+        secCam.classList.add('hidden');
+      } else {
+        btnCam.className = "py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition bg-white text-orange-600 shadow-sm";
+        btnText.className = "py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition text-white hover:bg-white/10";
+        secCam.classList.remove('hidden');
+        secText.classList.add('hidden');
+      }
+    }
+
+    function handleImageSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        base64Image = e.target.result.split(',')[1];
+        const imgPreview = document.getElementById('imagePreview');
+        imgPreview.src = e.target.result;
+        imgPreview.classList.remove('hidden');
+        document.getElementById('uploadText').innerText = "تم اختيار الصورة بنجاح!";
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function openApiKeyModal() {
+      document.getElementById('apiKeyModal').classList.remove('hidden');
+      document.getElementById('apiKeyInput').value = localStorage.getItem('gemini_api_key') || '';
+    }
+
+    function closeApiKeyModal() {
+      document.getElementById('apiKeyModal').classList.add('hidden');
+    }
+
+    function saveApiKey() {
+      const key = document.getElementById('apiKeyInput').value.trim();
+      if (key) {
+        localStorage.setItem('gemini_api_key', key);
+        alert('تم حفظ المفتاح بنجاح!');
+        closeApiKeyModal();
+      }
+    }
+
+    async function generateRecipe() {
+      const apiKey = localStorage.getItem('gemini_api_key');
+      if (!apiKey) {
+        openApiKeyModal();
+        return;
+      }
+
+      const loadingBox = document.getElementById('loadingBox');
+      const resultBox = document.getElementById('resultBox');
+      
+      loadingBox.classList.remove('hidden');
+      resultBox.classList.add('hidden');
+
+      try {
+        let promptText = "اقترح طبخة وصفة طعام عربية تناسب المكونات التالية وتكون بنسق JSON يحتوي على: title (اسم الطبخة), time (الوقت المتوقع), ingredients (مصفوفة المكونات), steps (مصفوفة الخطوات):\n";
+        let bodyData = {};
+
+        if (activeMode === 'text') {
+          const inputVal = document.getElementById('ingredientsInput').value;
+          if (!inputVal) {
+            alert('يرجى كتابة المكونات أولاً!');
+            loadingBox.classList.add('hidden');
+            return;
+          }
+          promptText += inputVal;
+
+          bodyData = {
+            contents: [{ parts: [{ text: promptText }] }]
+          };
+        } else {
+          if (!base64Image) {
+            alert('يرجى اختيار صورة أولاً!');
+            loadingBox.classList.add('hidden');
+            return;
+          }
+          promptText += "تعرف على المكونات الموجودة في الصورة واقترح طبقاً مناسباً بها.";
+
+          bodyData = {
+            contents: [{
+              parts: [
+                { text: promptText },
+                { inline_data: { mime_type: "image/jpeg", data: base64Image } }
+              ]
+            }]
+          };
+        }
+
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(bodyData)
+        });
+
+        const data = await response.json();
+        const textResponse = data.candidates[0].content.parts[0].text;
+
+        // Try to clean and parse JSON response
+        const cleanJson = textResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+        const recipe = JSON.parse(cleanJson);
+
+        document.getElementById('recipeTitle').innerText = recipe.title || 'وصفة مقترحة';
+        document.getElementById('recipeTime').innerText = recipe.time || '30 دقيقة';
+
+        const ingList = document.getElementById('recipeIngredients');
+        ingList.innerHTML = '';
+        (recipe.ingredients || []).forEach(item => {
+          const li = document.createElement('li');
+          li.innerText = item;
+          ingList.appendChild(li);
+        });
+
+        const stepsList = document.getElementById('recipeSteps');
+        stepsList.innerHTML = '';
+        (recipe.steps || []).forEach(step => {
+          const li = document.createElement('li');
+          li.innerText = step;
+          stepsList.appendChild(li);
+        });
+
+        resultBox.classList.remove('hidden');
+
+      } catch (err) {
+        alert('حدث خطأ أثناء التواصل مع الذكاء الاصطناعي، التأكد من صحة المفتاح والمكونات.');
+        console.error(err);
+      } finally {
+        loadingBox.classList.add('hidden');
+      }
+    }
+
+    function showPresetDish(name) {
+      document.getElementById('ingredientsInput').value = name;
+      switchMode('text');
+      generateRecipe();
+    }
+  </script>
+</body>
+</html>
